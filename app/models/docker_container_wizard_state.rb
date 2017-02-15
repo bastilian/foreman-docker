@@ -13,6 +13,10 @@ class DockerContainerWizardState < ActiveRecord::Base
   delegate :exposed_ports, :to => :environment
   delegate :dns, :to => :environment
 
+  def compute_resource
+    @compute_resource ||= ForemanDocker::Docker.find(compute_resource_id)
+  end
+
   def container_attributes
     { :repository_name     => image.repository_name,
       :tag                 => image.tag,
