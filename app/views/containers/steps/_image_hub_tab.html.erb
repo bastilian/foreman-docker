@@ -1,12 +1,4 @@
-<%-
-  model = model_for(registry)
-  active_tab = tab_class(registry) == 'active'
-  wrapper_class = if model.errors[:image] && active_tab
-    'form-group has-error'
-  else
-    'form-group'
-  end
-%>
+<%- model = model_for(registry) %>
 <%= form_for model, :namespace => registry,
   :class => 'form-horizontal',
   :url => wizard_path,
@@ -24,7 +16,7 @@
     :repository_name,
     :label => _('Search'),
     :size => 'col-md-6',
-    :wrapper_class => wrapper_class,
+    :wrapper_class => (wrapper_class(model) if tab_active?(registry)),
     :'data-url'  => auto_complete_repository_name_image_search_path(model.compute_resource_id),
     :value       => f.object.repository_name.present? ? f.object.repository_name : '',
     :'data-registry' => registry,

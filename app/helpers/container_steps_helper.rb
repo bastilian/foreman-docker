@@ -42,6 +42,18 @@ module ContainerStepsHelper
     end
   end
 
+  def wrapper_class(model)
+    if model.errors[:image]
+      'form-group has-error'
+    else
+      'form-group'
+    end
+  end
+
+  def tab_active?(registry)
+    active_tab == registry.to_sym
+  end
+
   def active_tab
     if @docker_container_wizard_states_image.katello?
       :katello
