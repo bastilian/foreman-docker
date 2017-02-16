@@ -27,7 +27,8 @@ function setupAutoComplete(registryType) {
 }
 
 function autoCompleteRepo(item) {
-  var registryType = $(item).data('registry'),
+  var item = $(item),
+      registryType = item.data('registry'),
       search_add_on = getImageConfirmation(registryType),
       tag = getTag(registryType);
 
@@ -46,10 +47,12 @@ function autoCompleteRepo(item) {
         search_add_on.attr('class', 'pficon pficon-ok');
         setWaitingText('Image found: <strong>' + item.val() + '</strong>. Retrieving available tags, please wait...', registryType);
         setAutocompleteTags(registryType);
+        item.closest('.form-group').removeClass('has-error');
       } else {
         search_add_on.attr('title', 'Image NOT found in the compute resource');
         search_add_on.attr('class', 'pficon pficon-error-circle-o');
         tag.autocomplete('option', 'source', []);
+        item.closest('.form-group').addClass('has-error');
       }
     },
     error: function(result) {

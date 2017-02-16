@@ -1,4 +1,12 @@
-<%- model = model_for(registry) %>
+<%-
+  model = model_for(registry)
+  active_tab = tab_class(registry) == 'active'
+  wrapper_class = if model.errors[:image] && active_tab
+    'form-group has-error'
+  else
+    'form-group'
+  end
+%>
 <%= form_for model, :namespace => registry,
   :class => 'form-horizontal',
   :url => wizard_path,
@@ -10,20 +18,20 @@
     </div>
   <% end -%>
 
-  <div class="form-group">
-    <div class='row'>
       <% help_type = f.object.errors[:repository_name].present? ? :help_block : :help_inline %>
       <%= text_f(
         f,
         :repository_name,
         :label => _('Search'),
         :size => 'col-md-6',
+        :wrapper_class => wrapper_class,
         :'data-url'  => auto_complete_repository_name_image_search_path(model.compute_resource_id),
         :value       => f.object.repository_name.present? ? f.object.repository_name : '',
         :'data-registry' => registry,
         :'data-search' => true,
         :focus_on_load => true,
         :placeholder => _('Find your favorite container, e.g. centos'),
+        :control_group_id => "#{registry}_image_search",
         help_type => link_to_function(
             icon_text('search', ''),
             'searchRepo(this)',
@@ -32,14 +40,12 @@
             :'data-registry' => registry,
             :'data-url' => search_repository_image_search_path(model.compute_resource_id)
           ) + content_tag(:span, '', :id => 'image-confirmation').html_safe) %>
-    </div>
-    <div class='row'>
+
       <%= text_f f, :tag,
+        :control_group_id => "#{registry}_tag_search",
         :'data-registry' => registry,
         :'data-tag' => true,
         :'data-url' => auto_complete_image_tag_image_search_path(model.compute_resource_id) %>
-    </div>
-  </div>
 
   <div class="col-md-12">
     <div data-search-spinner=true class='col-md-offset-3 hide'>
