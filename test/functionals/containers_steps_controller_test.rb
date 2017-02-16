@@ -3,6 +3,7 @@ require 'test_plugin_helper'
 module Containers
   class StepsControllerTest < ActionController::TestCase
     setup do
+      ::Docker::Image.stubs(:exist?).returns(true)
       @container = FactoryGirl.create(:container)
     end
 

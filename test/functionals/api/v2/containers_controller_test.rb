@@ -3,6 +3,10 @@ require 'test_plugin_helper'
 module Api
   module V2
     class ContainersControllerTest < ActionController::TestCase
+      setup do
+        ::Docker::Image.stubs(:exist?).returns(true)
+      end
+
       test 'index returns a list of all containers' do
         get :index, {}, set_session_user
         assert_response :success

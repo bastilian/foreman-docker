@@ -3,11 +3,13 @@ require 'ostruct'
 
 class ContainersServiceTest < ActiveSupport::TestCase
   setup do
+    ::Docker::Image.stubs(:exist?).returns(true)
+
     @state = DockerContainerWizardState.create! do |s|
       s.build_preliminary(:compute_resource_id => FactoryGirl.create(:docker_cr).id,
                           :locations           => [taxonomies(:location1)],
                           :organizations       => [taxonomies(:organization1)])
-      s.build_image(:repository_name => 'test', :tag => 'test')
+      s.build_image(:repository_name => 'test', :tag => 'test', :wizard_state => s)
       s.build_configuration(:name => 'test', :command => '/bin/bash')
       s.build_environment(:tty => false)
     end
