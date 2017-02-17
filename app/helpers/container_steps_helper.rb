@@ -42,8 +42,8 @@ module ContainerStepsHelper
     end
   end
 
-  def wrapper_class(model)
-    if model.errors[:image]
+  def image_search_wrapper_class(model)
+    if model.errors.messages[:image]
       'form-group has-error'
     else
       'form-group'
