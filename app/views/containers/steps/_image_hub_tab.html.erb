@@ -10,6 +10,19 @@
     </div>
   <% end -%>
 
+  <% if errors = model.errors.messages %>
+    <% errors.each do |field, field_errors| %>
+      <div class="alert alert-danger">
+        <span class="pficon pficon-error-circle-o"></span>
+        <ul>
+          <% field_errors.each do |error_message| %>
+            <li><%= error_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+
   <% help_type = f.object.errors[:repository_name].present? ? :help_block : :help_inline %>
   <%= text_f(
     f,

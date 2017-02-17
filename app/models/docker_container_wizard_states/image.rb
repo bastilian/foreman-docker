@@ -18,14 +18,14 @@ module DockerContainerWizardStates
       @registry_name ||= if registry_id
         DockerRegistry.find(registry_id).fetch(:name, _('Unnamed Registry'))
       else
-        'Docker Hub'
+        _('Compute resource or Docker Hub')
       end
     end
 
     def validate_image_exists
       unless compute_resource.exist? name
         error_msg = _("Container image %{image_name} could not be found on %{registry}.") % {
-          name: name,
+          image_name: name,
           registry: registry_name
         }
         errors.add(:image, error_msg)
