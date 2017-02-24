@@ -12,8 +12,7 @@ Rails.application.routes.draw do
 
   resources :image_search, :only => [] do
     member do
-      get :auto_complete_repository_name
-      get :auto_complete_image_tag
+      get :auto_complete
       get :search_repository
     end
   end

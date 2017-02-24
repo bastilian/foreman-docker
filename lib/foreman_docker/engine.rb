@@ -97,8 +97,7 @@ module ForemanDocker
 
         security_block :image_search do
           permission :search_repository_image_search,
-                     { :image_search => [:auto_complete_repository_name,
-                                         :auto_complete_image_tag,
+                     { :image_search => [:auto_complete,
                                          :search_repository] },
                      :resource_type => 'Docker/ImageSearch'
         end
