@@ -51,6 +51,14 @@ module ContainerStepsHelper
     end
   end
 
+  # el7 returns -> "name" => "docker.io: docker.io/centos",
+  # while f20 returns -> "name" => "centos"
+  # we need repo name to be => "docker.io/centos" for el7 and "centos" for fedora
+  # to ensure proper search with respect to the tags, image creation etc.
+  def cleanup_image_name(name)
+    name.split.last
+  end
+
   def image_search_wrapper_class(model)
     if model.errors.messages[:image]
       'form-group has-error'
