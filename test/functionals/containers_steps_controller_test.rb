@@ -3,7 +3,8 @@ require 'test_plugin_helper'
 module Containers
   class StepsControllerTest < ActionController::TestCase
     setup do
-      ::Docker::Image.stubs(:exist?).returns(true)
+      stub_image_existance
+      stub_registry_api
       @container = FactoryGirl.create(:container)
       @state = DockerContainerWizardState.create!
     end
@@ -53,17 +54,14 @@ module Containers
         end
 
         test 'has no errors if the image exists' do
-          ::Docker::Image.stubs(:exist?).returns(true)
           put :update, @params, set_session_user
-
           assert_valid @state.image
           assert css_select('#hub_image_search.has-error').size == 0
         end
 
         test 'shows an error when the image does not exist' do
-          ::Docker::Image.stubs(:exist?).returns(false)
+          stub_image_existance(false)
           put :update, @params, set_session_user
-
           refute_valid @state.image
           assert_select '#hub_image_search.has-error'
         end

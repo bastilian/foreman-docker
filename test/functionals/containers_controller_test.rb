@@ -2,7 +2,8 @@ require 'test_plugin_helper'
 
 class ContainersControllerTest < ActionController::TestCase
   setup do
-    ::Docker::Image.stubs(:exist?).returns(true)
+    stub_image_existance
+    stub_registry_api
   end
 
   test 'redirect if Docker provider is not available' do

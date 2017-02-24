@@ -3,7 +3,8 @@ require 'ostruct'
 
 class ContainersServiceTest < ActiveSupport::TestCase
   setup do
-    ::Docker::Image.stubs(:exist?).returns(true)
+    stub_image_existance
+    stub_registry_api
 
     @state = DockerContainerWizardState.create! do |s|
       s.build_preliminary(:compute_resource_id => FactoryGirl.create(:docker_cr).id,

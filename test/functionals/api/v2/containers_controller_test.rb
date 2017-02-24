@@ -4,7 +4,8 @@ module Api
   module V2
     class ContainersControllerTest < ActionController::TestCase
       setup do
-        ::Docker::Image.stubs(:exist?).returns(true)
+        stub_image_existance
+        stub_registry_api
       end
 
       test 'index returns a list of all containers' do

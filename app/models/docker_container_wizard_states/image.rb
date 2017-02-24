@@ -8,25 +8,24 @@ module DockerContainerWizardStates
 
     validates :tag,             :presence => true
     validates :repository_name, :presence => true
-    validate :validate_image_exists
+    validate :image_exists
 
     def name
       "#{repository_name}:#{tag}"
     end
 
-    def registry_name
-      @registry_name ||= if registry_id
-        DockerRegistry.find(registry_id).fetch(:name, _('Unnamed Registry'))
-      else
-        _('Compute resource or Docker Hub')
-      end
+    def registry
+       DockerRegistry.find(registry_id) if registry_id
     end
 
-    def validate_image_exists
-      unless compute_resource.exist? name
-        error_msg = _("Container image %{image_name} could not be found on %{registry}.") % {
-          image_name: name,
-          registry: registry_name
+    def image_search_service
+      ::ForemanDocker::ImageSearch.new(compute_resource, registry)
+    end
+
+    def image_exists
+      unless image_search_service.available?(name)
+        error_msg = _("Container image %{image_name} is not available.") % {
+          image_name: "#{name}",
         }
         errors.add(:image, error_msg)
       end
