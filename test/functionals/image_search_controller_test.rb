@@ -2,26 +2,20 @@ require 'test_plugin_helper'
 
 class ImageSearchControllerTest < ActionController::TestCase
   setup do
-    @container = FactoryGirl.create(:docker_cr)
+    stub_registry_api
+    @compute_resource = FactoryGirl.create(:docker_cr)
   end
 
   [Docker::Error::DockerError, Excon::Errors::Error, Errno::ECONNREFUSED].each do |error|
-    test 'auto_complete_repository_name catches exceptions on network errors' do
-      ForemanDocker::Docker.any_instance.expects(:exist?).raises(error)
-      get :auto_complete_repository_name, { :search => "test", :id => @container.id },
-          set_session_user
-      assert_response_is_expected
-    end
-
     test 'auto_complete_image_tag catch exceptions on network errors' do
-      ForemanDocker::Docker.any_instance.expects(:tags).raises(error)
-      get :auto_complete_image_tag, { :search => "test", :id => @container.id }, set_session_user
+      ForemanDocker::ImageSearch.any_instance.expects(:search).raises(error)
+      get :auto_complete, { :search => "test", :id => @compute_resource.id }, set_session_user
       assert_response_is_expected
     end
 
     test 'search_repository catch exceptions on network errors' do
-      ForemanDocker::Docker.any_instance.expects(:search).raises(error)
-      get :search_repository, { :search => "test", :id => @container.id }, set_session_user
+      ForemanDocker::ImageSearch.any_instance.expects(:search).raises(error)
+      get :search_repository, { :search => "test", :id => @compute_resource.id }, set_session_user
       assert_response_is_expected
     end
   end
@@ -36,8 +30,9 @@ class ImageSearchControllerTest < ActionController::TestCase
                    "name" =>  repo_full_name,
                    "star_count" => 0
                 }]
-    ForemanDocker::Docker.any_instance.expects(:search).returns(expected).at_least_once
-    get :search_repository, { :search => "centos", :id => @container.id }, set_session_user
+
+    ForemanDocker::ImageSearch.any_instance.expects(:search).returns(expected).at_least_once
+    get :search_repository, { :search => "centos", :id => @compute_resource.id }, set_session_user
     assert_response :success
     refute response.body.include?(repo_full_name)
     assert response.body.include?(repository)
@@ -53,8 +48,9 @@ class ImageSearchControllerTest < ActionController::TestCase
                   "name" =>  repo_full_name,
                   "star_count" => 0
                 }]
-    ForemanDocker::Docker.any_instance.expects(:search).returns(expected).at_least_once
-    get :search_repository, { :search => "centos", :id => @container.id }, set_session_user
+
+    ForemanDocker::ImageSearch.any_instance.expects(:search).returns(expected).at_least_once
+    get :search_repository, { :search => "centos", :id => @compute_resource.id }, set_session_user
     assert_response :success
     assert response.body.include?(repo_full_name)
     assert response.body.include?(repository)

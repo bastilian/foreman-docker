@@ -42,11 +42,12 @@ module ForemanDocker
       ::Docker::Image.all({ 'filter' => filter }, docker_connection)
     end
 
-    def tags_for_local_image(image)
-      image.info['RepoTags'].map do |image_tag|
-        _, tag = image_tag.split(':')
-        tag
+    def tags_for_local_image(image, query = nil)
+      result = image.info['RepoTags'].map do |image_tag|
+        image_tag.split(':').last
       end
+      result = filter_tags(result, query) if query
+      result
     end
 
     def exist?(name)
@@ -61,11 +62,7 @@ module ForemanDocker
       if exist?(image_name)
         tags_for_local_image(image(image_name))
       else
-        # If image is not found in the compute resource, get the tags from the Hub
-        hub_api_url = "https://index.docker.io/v1/repositories/#{image_name}/tags"
-        JSON.parse(URI.parse(hub_api_url).read).map do |tag|
-          tag['name']
-        end
+        Service::RegistryApi.docker_hub.tags(image_name).map { |tag| tag['name'] }
       end
     end
 
@@ -127,6 +124,14 @@ module ForemanDocker
 
     def docker_connection
       @docker_connection ||= ::Docker::Connection.new(url, credentials)
+    end
+
+    private
+
+    def filter_tags(result, query)
+      result.select do |tag_name|
+        tag_name =~ /^#{query}/
+      end
     end
 
     protected
