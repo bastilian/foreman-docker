@@ -83,7 +83,7 @@ class RegistryApiTest < ActiveSupport::TestCase
     let(:query) { 'centos' }
 
     test "calls #get with path and query" do
-      subject.expects(:get).with(path, {q: query}).once do |path_param, params|
+      subject.expects(:get).with(path, {q: query}) do |path_param, params|
         assert_equal path, path_param
         assert_equal query, params[:q]
       end.returns({})
@@ -92,9 +92,9 @@ class RegistryApiTest < ActiveSupport::TestCase
     end
 
     test "falls back to #catalog if #get fails" do
-      subject.expects(:catalog).with(query).once
+      subject.expects(:catalog).with(query)
 
-      subject.expects(:get).with(path, {q: query}).once
+      subject.expects(:get).with(path, {q: query})
         .raises('Error')
 
       subject.search(query)
@@ -133,17 +133,18 @@ class RegistryApiTest < ActiveSupport::TestCase
     let(:path) { "/v1/repositories/#{query}/tags" }
 
     test "calls #get with path" do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
       subject.tags(query)
     end
 
     test "falls back to #tags_v2 if #get fails" do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
         .raises('Error')
 
-      subject.expects(:tags_v2).with(query).once
+      subject.expects(:tags_v2).with(query)
       subject.tags(query)
     end
+
   end
 
   describe '#tags for API v2' do
@@ -158,7 +159,7 @@ class RegistryApiTest < ActiveSupport::TestCase
     end
 
     test 'calls #get with path' do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
         .returns(tags)
       subject.tags(query)
     end
