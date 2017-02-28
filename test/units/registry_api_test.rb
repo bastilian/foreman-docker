@@ -146,20 +146,26 @@ class RegistryApiTest < ActiveSupport::TestCase
     end
   end
 
-  describe '#tags_v2' do
+  describe '#tags for API v2' do
     let(:query) { 'debian' }
+    let(:v1_path) { "/v1/repositories/#{query}/tags" }
     let(:path) { "/v2/#{query}/tags/list" }
     let(:tags) { { 'tags' => ['jessy', 'woody'] } }
+
+    setup do
+      subject.stubs(:get).with(v1_path)
+        .raises('404 Not found')
+    end
 
     test 'calls #get with path' do
       subject.expects(:get).with(path).once
         .returns(tags)
-      subject.tags_v2(query)
+      subject.tags(query)
     end
 
     test 'returns {"name" => value } pairs ' do
-      subject.stubs(:get).returns(tags)
-      result = subject.tags_v2(query)
+      subject.stubs(:get).with(path).returns(tags)
+      result = subject.tags(query)
       assert_equal tags['tags'].first, result.first['name']
     end
   end

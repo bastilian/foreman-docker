@@ -44,21 +44,9 @@ module Service
     end
 
     def tags(image_name, query = nil)
-      begin
-        result = get("/v1/repositories/#{image_name}/tags")
-      rescue
-        result = tags_v2(image_name)
-      end
-      if result
-        result = filter_tags(result, query) if query
-        result
-      else
-        []
-      end
-    end
-
-    def tags_v2(image_name)
-      get("/v2/#{image_name}/tags/list")['tags'].map { |tag| { 'name' => tag } }
+      result = get_tags(image_name)
+      result = filter_tags(result, query) if query
+      result
     end
 
     def ok?
@@ -72,6 +60,16 @@ module Service
     end
 
     private
+
+    def get_tags(image_name)
+      get("/v1/repositories/#{image_name}/tags")
+    rescue
+      tags_v2(image_name)
+    end
+
+    def tags_v2(image_name)
+      get("/v2/#{image_name}/tags/list")['tags'].map { |tag| { 'name' => tag } }
+    end
 
     def credentials
       { user: @user, password: @password }
