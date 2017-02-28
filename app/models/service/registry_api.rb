@@ -6,13 +6,13 @@ module Service
       connection: { omit_default_port: true }
     }
 
-    attr_accessor :config, :url, :user, :password
+    attr_accessor :config, :url
 
     def initialize(params = {})
       self.config = DEFAULTS.merge(params)
       self.url = config[:url]
-      self.user = config[:user] unless config[:user].blank?
-      self.password = config[:password] unless config[:password].blank?
+      @user = config[:user] unless config[:user].blank?
+      @password = config[:password] unless config[:password].blank?
 
       Docker.logger = Rails.logger if Rails.env.development?
     end
@@ -23,7 +23,7 @@ module Service
 
     def get(path, params = nil)
       response = connection.get('/', params,
-                            DEFAULTS[:connection].merge({ path: "#{path}" }))
+                                DEFAULTS[:connection].merge({ path: "#{path}" }))
       response = JSON.parse(response) rescue
       response
     end
@@ -74,7 +74,7 @@ module Service
     private
 
     def credentials
-      { user: user, password: password }
+      { user: @user, password: @password }
     end
 
     def filter_tags(result, query)

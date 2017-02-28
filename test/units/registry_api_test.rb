@@ -17,10 +17,14 @@ class RegistryApiTest < ActiveSupport::TestCase
       let(:user) { 'username' }
       let(:password) { 'secretpassword' }
 
-      test 'it sets the same user and password' do
-        subject.user = user
-        subject.password = password
+      subject do
+        Service::RegistryApi.new({
+          url: url,
+          password: password,
+          user: user })
+      end
 
+      test 'it sets the same user and password' do
         assert_equal user, subject.connection.options[:user]
         assert_equal password, subject.connection.options[:password]
       end
