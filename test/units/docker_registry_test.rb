@@ -46,4 +46,13 @@ class DockerRegistryTest < ActiveSupport::TestCase
       refute @registry.valid?
     end
   end
+
+  describe '#api' do
+    subject { FactoryGirl.create(:docker_registry) }
+    let(:api) { subject.api }
+
+    test 'returns a RegistryApi instance' do
+      assert_kind_of Service::RegistryApi, api
+    end
+  end
 end

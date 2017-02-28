@@ -42,6 +42,12 @@ class DockerRegistry < ActiveRecord::Base
     _("Docker/Registry")
   end
 
+  def api
+    @api ||= Service::RegistryApi.new(url: url,
+                                      user: username,
+                                      password: password)
+  end
+
   private
 
   def attempt_login
