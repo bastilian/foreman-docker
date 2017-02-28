@@ -45,6 +45,7 @@ module Service
 
     def tags(image_name, query = nil)
       result = get_tags(image_name)
+      result = result.keys.map { |t| {'name' => t.to_s } } if result.is_a? Hash
       result = filter_tags(result, query) if query
       result
     end
