@@ -65,6 +65,13 @@ class RegistryApiTest < ActiveSupport::TestCase
 
       subject.get(path)
     end
+
+    test 'returns the response raw body if it is not JSON' do
+      response = 'This is not JSON'
+      subject.connection.stubs(:get)
+        .returns(response)
+      assert_equal response, subject.get('/v1/')
+    end
   end
 
   describe '#search' do

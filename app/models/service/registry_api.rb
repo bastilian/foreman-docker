@@ -1,7 +1,11 @@
 module Service
   class RegistryApi
     DOCKER_HUB = 'https://registry.hub.docker.com/'
-    DEFAULTS = { :url => 'http://localhost:5000' }
+    DEFAULTS = {
+      url: 'http://localhost:5000',
+      connection: { omit_default_port: true }
+    }
+
     attr_accessor :config, :url, :user, :password
 
     def initialize(params = {})
@@ -18,9 +22,10 @@ module Service
     end
 
     def get(path, params = nil)
-      json = connection.get('/', params, { omit_default_port: true,
-                                           path: "#{path}"  })
-      JSON.parse(json)
+      response = connection.get('/', params,
+                            DEFAULTS[:connection].merge({ path: "#{path}" }))
+      response = JSON.parse(response) rescue
+      response
     end
 
     # Since the Registry API v2 does not support a search the v1 endpoint is used
