@@ -160,6 +160,23 @@ class RegistryApiTest < ActiveSupport::TestCase
     end
   end
 
+  describe '#ok?' do
+    test 'calls the API via #get with /v1/' do
+      subject.connection.expects(:get)
+        .with('/', nil, Service::RegistryApi::DEFAULTS[:connection].merge({ path: '/v1/' }))
+        .returns('Docker Registry API')
+      assert subject.ok?
+    end
+
+    test 'calls #get with /v2/ if /v1/fails' do
+      subject.stubs(:get).with('/v1/')
+        .raises('404 page not found')
+      subject.expects(:get).with('/v2/')
+        .returns({})
+      assert subject.ok?
+    end
+  end
+
   describe '.docker_hub' do
     subject { Service::RegistryApi }
 
