@@ -64,7 +64,7 @@ module ForemanDocker
     end
 
     def compute_resource_tags(compute_resource, image_name, tag)
-      image = compute_resource.image(image_name) rescue nil
+      image = compute_resource.image(image_name)
       image ? compute_resource.tags_for_local_image(image, tag) : []
     end
 
