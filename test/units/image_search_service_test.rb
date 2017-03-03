@@ -30,6 +30,20 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
     end
   end
 
+  describe '#remove_source' do
+    test 'removes a registry source from @sources' do
+      refute subject.instance_variable_get(:@sources)[:registry].empty?
+      subject.remove_source(registry)
+      assert subject.instance_variable_get(:@sources)[:registry].empty?
+    end
+
+    test 'removes a compute_resource source from @sources' do
+      refute subject.instance_variable_get(:@sources)[:compute_resource].empty?
+      subject.remove_source(compute_resource)
+      assert subject.instance_variable_get(:@sources)[:compute_resource].empty?
+    end
+  end
+
   describe '#search' do
     test 'returns {"name" => value } pairs' do
       return_result = Hash.new

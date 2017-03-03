@@ -19,6 +19,12 @@ module ForemanDocker
       end
     end
 
+    def remove_source(source)
+      @sources.each do |_, sources|
+        sources.delete(source).present?
+      end
+    end
+
     def search(query)
       return [] if query[:term].blank? || query[:term] == ':'
 
