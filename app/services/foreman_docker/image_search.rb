@@ -20,7 +20,7 @@ module ForemanDocker
 
     def remove_source(source)
       @sources.each do |_, sources|
-        sources.delete(source).present?
+        sources.delete(source)
       end
     end
 
