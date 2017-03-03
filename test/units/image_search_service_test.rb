@@ -48,7 +48,7 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
     test 'returns {"name" => value } pairs' do
       return_result = Hash.new
       return_result.stubs(:info).returns({ 'RepoTags' => ["#{term}:latest"]})
-      subject.compute_resource.stubs(:local_images).with(term)
+      compute_resource.stubs(:local_images).with(term)
         .returns([return_result])
       result = subject.search(query)
       assert_equal({"name" => term}, result.first)
@@ -56,7 +56,7 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
 
     context 'tags is false' do
       test 'calls #images with term as query' do
-        subject.expects(:images).with(term).once
+        subject.expects(:images).with(term)
           .returns([])
         subject.search(query)
       end
@@ -68,7 +68,7 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
       end
 
       test 'calls #tags with term as query' do
-        subject.expects(:tags).with(term).once
+        subject.expects(:tags).with(term)
           .returns([])
         subject.search(query)
       end
@@ -78,34 +78,40 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
   describe '#images' do
     context 'a compute_resource set' do
       test 'calls #search_compute_resource with term as query' do
-        subject.expects(:search_compute_resource).with(term).once
+        subject.expects(:compute_resource_search).with(compute_resource, term)
           .returns([])
         subject.images(term)
       end
     end
 
     context 'no compute_resource is set' do
-      setup { subject.compute_resource = nil }
+      setup do
+        subject.remove_source(compute_resource)
+      end
 
       test 'does not call #search_compute_resource' do
-        subject.expects(:search_compute_resource).with(term).never
+        subject.expects(:compute_resource_search).with(compute_resource, term)
+          .never
         subject.images(term)
       end
     end
 
     context 'a registry is set' do
       test 'calls #search_registry' do
-        subject.expects(:search_registry).with(term).once
+        subject.expects(:registry_search).with(registry, term)
           .returns([])
         subject.images(term)
       end
     end
 
     context 'no registry is set' do
-      setup { subject.registry = nil }
+      setup do
+        subject.remove_source(registry)
+      end
 
       test 'does not call #search_registry' do
-        subject.expects(:search_registry).with(term).never
+        subject.expects(:registry_search).with(registry, term)
+          .never
         subject.images(term)
       end
     end
@@ -117,35 +123,44 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
 
     context 'a compute_resource set' do
       test 'calls #compute_resource with image name and tag' do
-        subject.expects(:compute_resource_tags).with(term, tag).once
+        subject.expects(:compute_resource_tags).with(compute_resource, term, tag)
           .returns([])
         subject.tags(query)
       end
     end
 
     context 'no compute_resource is set' do
-      setup { subject.compute_resource = nil }
+      setup do
+        subject.remove_source(compute_resource)
+      end
 
       test 'does not call #search_compute_resource' do
-        subject.expects(:compute_resource_tags).with(term, tag).never
+        subject.expects(:compute_resource_tags).with(compute_resource, term, tag)
+          .never
         subject.tags(query)
       end
     end
 
     context 'a registry is set' do
-      setup { subject.compute_resource = nil }
+      setup do
+        subject.remove_source(compute_resource)
+      end
 
       test 'calls #registry_tags with image name and tag' do
-        subject.expects(:registry_tags).with(term, tag).once
+        subject.expects(:registry_tags).with(registry, term, tag)
           .returns([])
         subject.tags(query)
       end
     end
 
     context 'no registry is set' do
-      setup { subject.registry = nil }
+      setup do
+        subject.remove_source(registry)
+      end
+
       test 'does not call #registry_tags' do
-        subject.expects(:search_registry).with(term, tag).never
+        subject.expects(:registry_search).with(registry, term, tag)
+          .never
         subject.images(query)
       end
     end

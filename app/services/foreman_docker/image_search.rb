@@ -1,10 +1,9 @@
 module ForemanDocker
   class ImageSearch
-    attr_accessor :compute_resource, :registry
-
-    def initialize(compute_resource, registry)
-      @compute_resource = compute_resource
-      @registry = registry ? registry.api : Service::RegistryApi.docker_hub
+    def initialize(*args)
+      args.each do |source|
+        add_source(source)
+      end
     end
 
     def add_source(source)
@@ -36,17 +35,13 @@ module ForemanDocker
     end
 
     def images(query)
-      result = []
-      result += search_compute_resource(query) if compute_resource
-      result += search_registry(query) if registry
+      sources_results_for(:search, query)
     end
 
     def tags(query)
-      result = []
       image_name, tag = query.split(':')
-      result += compute_resource_tags(image_name, tag) if compute_resource
-      result += registry_tags(image_name, tag) if registry
-      result.map { |tag_name| { 'name' => tag_name } }
+      sources_results_for(:tags, image_name, tag)
+        .map { |tag_name| { 'name' => tag_name } }
     end
 
     def available?(query)
@@ -55,11 +50,11 @@ module ForemanDocker
 
     private
 
-    def search_registry(term)
-      registry.search(term)['results']
+    def registry_search(registry, term)
+      registry.api.search(term)['results']
     end
 
-    def search_compute_resource(query)
+    def compute_resource_search(compute_resource, query)
       images = compute_resource.local_images(query)
       images.flat_map do |image|
         image.info['RepoTags'].map do |tag|
@@ -68,13 +63,23 @@ module ForemanDocker
       end.uniq
     end
 
-    def compute_resource_tags(image_name, tag)
+    def compute_resource_tags(compute_resource, image_name, tag)
       image = compute_resource.image(image_name) rescue nil
       image ? compute_resource.tags_for_local_image(image, tag) : []
     end
 
-    def registry_tags(image_name, tag)
-      registry.tags(image_name, tag).map { |t| t['name'] }
+    def registry_tags(registry, image_name, tag)
+      registry.api.tags(image_name, tag).map { |t| t['name'] }
+    end
+
+    def sources_results_for(search, *args)
+      result = []
+      @sources.each do |kind, sources|
+        sources.each do |source|
+          result << self.send("#{kind}_#{search}", source, *args)
+        end
+      end
+      result.flatten
     end
   end
 end
