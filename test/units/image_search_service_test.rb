@@ -12,6 +12,24 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
     stub_registry_api
   end
 
+  describe '#add_source' do
+    setup do
+      subject.instance_variable_set(:@sources, nil)
+    end
+
+    test 'adds a compute resource to @sources[:compute_resource]' do
+      subject.add_source(compute_resource)
+      assert_equal compute_resource,
+                   subject.instance_variable_get(:@sources)[:compute_resource].first
+    end
+
+    test 'adds a registry to @sources[:registry]' do
+      subject.add_source(registry)
+      assert_equal registry,
+                   subject.instance_variable_get(:@sources)[:registry].first
+    end
+  end
+
   describe '#search' do
     test 'returns {"name" => value } pairs' do
       return_result = Hash.new

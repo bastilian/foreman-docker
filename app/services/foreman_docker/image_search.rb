@@ -7,6 +7,18 @@ module ForemanDocker
       @registry = registry ? registry.api : Service::RegistryApi.docker_hub
     end
 
+    def add_source(source)
+      @sources ||= {}
+      case source
+      when ForemanDocker::Docker
+        @sources[:compute_resource] ||= []
+        @sources[:compute_resource] << source
+      when DockerRegistry
+        @sources[:registry] ||= []
+        @sources[:registry] << source
+      end
+    end
+
     def search(query)
       return [] if query[:term].blank? || query[:term] == ':'
 
