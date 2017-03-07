@@ -86,8 +86,6 @@ class ImageSearchController < ::ApplicationController
       @registry ||= DockerRegistry.authorized(:view_registries)
         .find(params[:registry_id]).api
       [@registry]
-    else
-      raise ActiveRecord::RecordNotFound
     end
   end
 end
