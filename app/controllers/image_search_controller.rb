@@ -24,7 +24,7 @@ class ImageSearchController < ::ApplicationController
   def search_repository
     catch_network_errors do
       repositories = image_search_service.search({
-        term: params[:search],
+        term: params[:search].split(':').first,
         tags: 'false'
       })
 
