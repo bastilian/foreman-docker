@@ -79,7 +79,7 @@ module ForemanDocker
           result << self.send("#{kind}_#{search}", source, *args)
         end
       end
-      result.flatten
+      result.flatten.compact
     end
   end
 end
