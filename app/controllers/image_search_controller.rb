@@ -10,7 +10,7 @@ class ImageSearchController < ::ApplicationController
     catch_network_errors do
       tags = image_search_service.search({
         term: params[:search],
-        tags: true
+        tags: 'true'
       })
 
       respond_to do |format|
@@ -25,7 +25,7 @@ class ImageSearchController < ::ApplicationController
     catch_network_errors do
       repositories = image_search_service.search({
         term: params[:search],
-        tags: false
+        tags: 'false'
       })
 
       respond_to do |format|
