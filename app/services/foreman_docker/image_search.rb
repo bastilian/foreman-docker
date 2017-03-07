@@ -63,8 +63,14 @@ module ForemanDocker
       end.uniq
     end
 
+    def compute_resource_image(compute_resource, image_name)
+      compute_resource.image(image_name)
+    rescue ::Docker::Error::NotFoundError
+      nil
+    end
+
     def compute_resource_tags(compute_resource, image_name, tag)
-      image = compute_resource.image(image_name)
+      image = compute_resource_image(compute_resource, image_name)
       image ? compute_resource.tags_for_local_image(image, tag) : []
     end
 
