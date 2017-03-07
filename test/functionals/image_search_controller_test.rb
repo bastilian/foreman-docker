@@ -21,7 +21,7 @@ class ImageSearchControllerTest < ActionController::TestCase
   describe '#auto_complete_repository_name' do
     test 'returns if an image is available' do
       exists = ['true', 'false'].sample
-      search_type = ['hub', 'external'].sample
+      search_type = ['hub', 'registry'].sample
       subject.instance_variable_set(:@image_search_service, image_search_service)
       image_search_service.expects(:available?).returns(exists)
 
@@ -48,7 +48,7 @@ class ImageSearchControllerTest < ActionController::TestCase
     end
 
     context 'it is a External Registry tab request' do
-      let(:search_type) { 'external' }
+      let(:search_type) { 'registry' }
 
       test 'it only queries the registry api' do
         compute_resource.expects(:image).with(term).never
@@ -68,7 +68,7 @@ class ImageSearchControllerTest < ActionController::TestCase
     let(:term) { "#{image}:#{tag_fragment}"}
 
     test 'returns an array of { label:, value: } hashes' do
-      search_type = ['hub', 'external'].sample
+      search_type = ['hub', 'registry'].sample
       subject.instance_variable_set(:@image_search_service, image_search_service)
       image_search_service.expects(:search)
         .with({ term: term, tags: 'true' })
@@ -96,7 +96,7 @@ class ImageSearchControllerTest < ActionController::TestCase
     end
 
     context 'it is a External Registry tab request' do
-      let(:search_type) { 'external' }
+      let(:search_type) { 'registry' }
 
       test 'it only queries the registry api' do
         compute_resource.expects(:image).with(image).never
@@ -113,7 +113,7 @@ class ImageSearchControllerTest < ActionController::TestCase
 
   describe '#search_repository' do
     test 'returns html with the found images' do
-      search_type = ['hub', 'external'].sample
+      search_type = ['hub', 'registry'].sample
       subject.instance_variable_set(:@image_search_service, image_search_service)
       image_search_service.expects(:search)
         .with({ term: term, tags: 'false' })
@@ -139,7 +139,7 @@ class ImageSearchControllerTest < ActionController::TestCase
     end
 
     context 'it is a External Registry tab request' do
-      let(:search_type) { 'external' }
+      let(:search_type) { 'registry' }
 
       test 'it only queries the registry api' do
         compute_resource.expects(:local_images).with(image).never

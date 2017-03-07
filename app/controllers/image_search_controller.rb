@@ -82,7 +82,7 @@ class ImageSearchController < ::ApplicationController
       @registry ||= Service::RegistryApi.docker_hub
       @compute_resource ||= ComputeResource.authorized(:view_compute_resources).find(params[:id])
       [@registry, @compute_resource]
-    elsif params[:registry] == 'external' && params[:registry_id].present?
+    elsif params[:registry] == 'registry' && params[:registry_id].present?
       @registry ||= DockerRegistry.authorized(:view_registries)
         .find(params[:registry_id]).api
       [@registry]
