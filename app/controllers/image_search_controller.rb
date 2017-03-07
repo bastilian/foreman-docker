@@ -1,6 +1,4 @@
 class ImageSearchController < ::ApplicationController
-  before_filter :find_resource
-
   def auto_complete_repository_name
     catch_network_errors do
       available = image_search_service.available?(params[:search])
@@ -75,16 +73,19 @@ class ImageSearchController < ::ApplicationController
   end
 
   def image_search_service
-    @image_search_service ||= ForemanDocker::ImageSearch.new(@compute_resource, @registry)
+    @image_search_service ||= ForemanDocker::ImageSearch.new(sources)
   end
 
-  def find_resource
-    if params[:registry_id].present?
-      @registry = DockerRegistry.authorized(:view_registries).find(params[:registry_id])
+  def sources
+    if params[:registry] == 'hub'
+      @registry ||= Service::RegistryApi.docker_hub
+      @compute_resource ||= ComputeResource.authorized(:view_compute_resources).find(params[:id])
+      [@registry, @compute_resource]
+    elsif params[:registry] == 'external' && params[:registry_id].present?
+      @registry ||= DockerRegistry.authorized(:view_registries)
+        .find(params[:registry_id]).api
     else
-      @compute_resource = ComputeResource.authorized(:view_compute_resources).find(params[:id])
+      raise ActiveRecord::RecordNotFound
     end
-  rescue ActiveRecord::RecordNotFound
-    not_found
   end
 end
