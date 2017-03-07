@@ -1,8 +1,9 @@
 require 'test_plugin_helper'
 
 class ImageSearchControllerTest < ActionController::TestCase
-  let(:term) { 'centos' }
+  let(:image) { 'centos' }
   let(:tags) { ['latest', '5', '4.3'].map { |tag| "#{term}:#{tag}" } }
+  let(:term) { image }
 
   let(:docker_hub) { Service::RegistryApi.new(url: 'https://nothub.com') }
   let(:compute_resource) { FactoryGirl.create(:docker_cr) }
@@ -63,7 +64,8 @@ class ImageSearchControllerTest < ActionController::TestCase
   end
 
   describe '#auto_complete_image_tag' do
-    let(:term) { "#{term}:lat"}
+    let(:tag_fragment) { 'lat' }
+    let(:term) { "#{image}:#{tag_fragment}"}
 
     test 'returns an array of { label:, value: } hashes' do
       search_type = ['hub', 'external'].sample
@@ -81,7 +83,7 @@ class ImageSearchControllerTest < ActionController::TestCase
       let(:search_type) { 'hub' }
 
       test 'it searches Docker Hub and the ComputeResource' do
-        compute_resource.expects(:image).with(term)
+        compute_resource.expects(:image).with(image)
           .returns(term)
         compute_resource.expects(:tags_for_local_image)
           .returns(tags)
@@ -97,9 +99,9 @@ class ImageSearchControllerTest < ActionController::TestCase
       let(:search_type) { 'external' }
 
       test 'it only queries the registry api' do
-        compute_resource.expects(:image).with(term).never
+        compute_resource.expects(:image).with(image).never
         docker_hub.expects(:tags).never
-        registry.api.expects(:tags).with(term, nil)
+        registry.api.expects(:tags).with(image, tag_fragment)
           .returns([])
 
         xhr :get, :auto_complete_image_tag,
