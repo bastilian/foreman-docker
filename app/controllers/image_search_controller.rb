@@ -74,7 +74,7 @@ class ImageSearchController < ::ApplicationController
   end
 
   def image_search_service
-    @image_search_service ||= ForemanDocker::ImageSearch.new(sources)
+    @image_search_service ||= ForemanDocker::ImageSearch.new(*sources)
   end
 
   def sources
@@ -85,6 +85,7 @@ class ImageSearchController < ::ApplicationController
     elsif params[:registry] == 'external' && params[:registry_id].present?
       @registry ||= DockerRegistry.authorized(:view_registries)
         .find(params[:registry_id]).api
+      [@registry]
     else
       raise ActiveRecord::RecordNotFound
     end
