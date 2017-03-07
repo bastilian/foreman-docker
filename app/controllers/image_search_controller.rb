@@ -67,6 +67,7 @@ class ImageSearchController < ::ApplicationController
   # This is the format jQuery UI autocomplete expects
   def prepare_for_autocomplete(tags)
     tags.map do |tag|
+      tag = tag.is_a?(Hash) ? tag.fetch('name', tag) : tag
       tag = CGI.escapeHTML(tag)
       { :label => tag, :value => tag }
     end
