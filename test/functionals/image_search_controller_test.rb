@@ -64,14 +64,49 @@ class ImageSearchControllerTest < ActionController::TestCase
   end
 
   describe '#auto_complete_image_tag' do
-    let(:tags) { ['latest', '5', '4.3'] }
+    let(:term) { "#{term}:lat"}
 
     test 'returns an array of { label:, value: } hashes' do
-      ForemanDocker::ImageSearch.any_instance.expects(:search)
-        .with({ term: 'test', tags: true })
+      search_type = ['hub', 'external'].sample
+      subject.instance_variable_set(:@image_search_service, image_search_service)
+      image_search_service.expects(:search)
+        .with({ term: term, tags: 'true' })
         .returns(tags)
-      xhr :get, :auto_complete_image_tag, { search: "test", id: @container.id }, set_session_user
+      xhr :get, :auto_complete_image_tag,
+        { registry: search_type, search: term,
+          id: compute_resource }, set_session_user
       assert_equal tags.first, JSON.parse(response.body).first['value']
+    end
+
+    context 'a Docker Hub tab request' do
+      let(:search_type) { 'hub' }
+
+      test 'it searches Docker Hub and the ComputeResource' do
+        compute_resource.expects(:image).with(term)
+          .returns(term)
+        compute_resource.expects(:tags_for_local_image)
+          .returns(tags)
+        docker_hub.expects(:tags).returns([])
+
+        xhr :get, :auto_complete_image_tag,
+          { registry: search_type, search: term,
+            id: compute_resource }, set_session_user
+      end
+    end
+
+    context 'it is a External Registry tab request' do
+      let(:search_type) { 'external' }
+
+      test 'it only queries the registry api' do
+        compute_resource.expects(:image).with(term).never
+        docker_hub.expects(:tags).never
+        registry.api.expects(:tags).with(term, nil)
+          .returns([])
+
+        xhr :get, :auto_complete_image_tag,
+          { registry: search_type, registry_id: registry,
+            search: term, id: compute_resource }, set_session_user
+      end
     end
   end
 
