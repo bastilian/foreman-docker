@@ -26,6 +26,26 @@ function setupAutoComplete(registryType) {
   });
 }
 
+function paramsForSearch(registryType) {
+  var image = getRepo(registryType),
+      tag = getTag(registryType),
+      registryId = $('#docker_container_wizard_states_image_registry_id').val(),
+      params = {
+        registry: registryType,
+        search: image.val()
+      }
+
+  if (tag.val() != '') {
+    params.search = image.val() + ':' + tag.val();
+  };
+
+  if (registryType == 'registry' && registryId != '') {
+    params.registry_id = registryId;
+  };
+
+  return params;
+}
+
 function autoCompleteRepo(item) {
   var registryType = $(item).data('registry'),
       search_add_on = getImageConfirmation(registryType),
