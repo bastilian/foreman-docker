@@ -7,6 +7,7 @@ module Service
     }
 
     attr_accessor :config, :url
+    delegate :logger, :to => Rails
 
     def initialize(params = {})
       self.config = DEFAULTS.merge(params)
@@ -14,7 +15,7 @@ module Service
       @user = config[:user] unless config[:user].blank?
       @password = config[:password] unless config[:password].blank?
 
-      Docker.logger = Rails.logger if Rails.env.development?
+      Docker.logger = logger if Rails.env.development? || Rails.env.test?
     end
 
     def connection
@@ -24,7 +25,7 @@ module Service
     def get(path, params = nil)
       response = connection.get('/'.freeze, params,
                                 DEFAULTS[:connection].merge({ path: "#{path}" }))
-      response = JSON.parse(response) rescue
+      response = parse_json(response)
       response
     end
 
@@ -32,7 +33,8 @@ module Service
     # Newer registries will fail, the v2 catalog endpoint is used
     def search(query)
       get('/v1/search'.freeze, { q: query })
-    rescue
+    rescue => e
+      logger.warn "API v1 - Search failed #{e.backtrace}"
       { 'results' => catalog(query) }
     end
 
@@ -52,7 +54,8 @@ module Service
 
     def ok?
       get('/v1/'.freeze).match("Docker Registry API")
-    rescue
+    rescue => e
+      logger.warn "API v1 - Ping failed #{e.backtrace}"
       get('/v2/'.freeze).is_a? Hash
     end
 
@@ -62,9 +65,17 @@ module Service
 
     private
 
+    def parse_json(string)
+      JSON.parse(string)
+    rescue => e
+      logger.warn "JSON parsing failed: #{e.backtrace}"
+      string
+    end
+
     def get_tags(image_name)
       get("/v1/repositories/#{image_name}/tags")
-    rescue
+    rescue => e
+      logger.warn "API v1 - Repository images request failed #{e.backtrace}"
       tags_v2(image_name)
     end
 
