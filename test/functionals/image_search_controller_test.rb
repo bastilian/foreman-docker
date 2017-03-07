@@ -1,10 +1,21 @@
 require 'test_plugin_helper'
 
 class ImageSearchControllerTest < ActionController::TestCase
+  let(:term) { 'centos' }
+  let(:tags) { ['latest', '5', '4.3'].map { |tag| "#{term}:#{tag}" } }
+
+  let(:docker_hub) { Service::RegistryApi.new(url: 'https://nothub.com') }
   let(:compute_resource) { FactoryGirl.create(:docker_cr) }
+  let(:registry) { FactoryGirl.create(:docker_registry) }
+  let(:image_search_service) { ForemanDocker::ImageSearch.new }
 
   setup do
     @container = FactoryGirl.create(:docker_cr)
+    Service::RegistryApi.stubs(:docker_hub).returns(docker_hub)
+    ComputeResource::ActiveRecord_Relation.any_instance
+      .stubs(:find).returns(compute_resource)
+    DockerRegistry::ActiveRecord_Relation.any_instance
+      .stubs(:find).returns(registry)
   end
 
   describe '#auto_complete_repository_name' do
