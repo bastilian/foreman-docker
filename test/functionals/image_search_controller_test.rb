@@ -19,25 +19,47 @@ class ImageSearchControllerTest < ActionController::TestCase
   end
 
   describe '#auto_complete_repository_name' do
-    let(:term) { 'centos' }
-    let(:exists) { true }
+    test 'returns if an image is available' do
+      exists = ['true', 'false'].sample
+      search_type = ['hub', 'external'].sample
+      subject.instance_variable_set(:@image_search_service, image_search_service)
+      image_search_service.expects(:available?).returns(exists)
 
-    test 'returns true if the image exists' do
-      ForemanDocker::ImageSearch.any_instance.expects(:available?).with(term)
-        .returns(exists)
       xhr :get, :auto_complete_repository_name,
-        { search: term, id: compute_resource.id }, set_session_user
-      assert_equal exists.to_s, response.body
+        { registry: search_type, search: term,
+          id: compute_resource }, set_session_user
+      assert_equal exists, response.body
     end
 
-    test 'returns false if the image does not exist' do
-      exists = false
-      ForemanDocker::ImageSearch.any_instance.expects(:available?).with(term)
-        .returns(exists)
+    context 'it is a Docker Hub tab request' do
+      let(:search_type) { 'hub' }
 
-      xhr :get, :auto_complete_repository_name,
-        { search: term, id: compute_resource.id }, set_session_user
-      assert_equal exists.to_s, response.body
+      test 'it queries the compute_resource and Docker Hub' do
+        compute_resource.expects(:image).with(term)
+          .returns(term)
+        compute_resource.expects(:tags_for_local_image)
+          .returns(tags)
+        docker_hub.expects(:tags).returns([])
+
+        xhr :get, :auto_complete_repository_name,
+          { registry: search_type, search: term,
+            id: compute_resource }, set_session_user
+      end
+    end
+
+    context 'it is a External Registry tab request' do
+      let(:search_type) { 'external' }
+
+      test 'it only queries the registry api' do
+        compute_resource.expects(:image).with(term).never
+        docker_hub.expects(:tags).never
+        registry.api.expects(:tags).with(term, nil)
+          .returns(['latest'])
+
+        xhr :get, :auto_complete_repository_name,
+          { registry: search_type, registry_id: registry,
+            search: term, id: compute_resource }, set_session_user
+      end
     end
   end
 
