@@ -12,7 +12,7 @@ module ForemanDocker
       when ForemanDocker::Docker
         @sources[:compute_resource] ||= []
         @sources[:compute_resource] << source
-      when DockerRegistry
+      when Service::RegistryApi
         @sources[:registry] ||= []
         @sources[:registry] << source
       end
@@ -51,7 +51,7 @@ module ForemanDocker
     private
 
     def registry_search(registry, term)
-      registry.api.search(term)['results']
+      registry.search(term)['results']
     end
 
     def compute_resource_search(compute_resource, query)
@@ -69,7 +69,7 @@ module ForemanDocker
     end
 
     def registry_tags(registry, image_name, tag)
-      registry.api.tags(image_name, tag).map { |t| t['name'] }
+      registry.tags(image_name, tag).map { |t| t['name'] }
     end
 
     def sources_results_for(search, *args)
