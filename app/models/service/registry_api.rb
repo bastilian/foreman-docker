@@ -1,8 +1,8 @@
 module Service
   class RegistryApi
-    DOCKER_HUB = 'https://registry.hub.docker.com/'
+    DOCKER_HUB = 'https://registry.hub.docker.com/'.freeze
     DEFAULTS = {
-      url: 'http://localhost:5000',
+      url: 'http://localhost:5000'.freeze,
       connection: { omit_default_port: true }
     }
 
@@ -22,7 +22,7 @@ module Service
     end
 
     def get(path, params = nil)
-      response = connection.get('/', params,
+      response = connection.get('/'.freeze, params,
                                 DEFAULTS[:connection].merge({ path: "#{path}" }))
       response = JSON.parse(response) rescue
       response
@@ -31,14 +31,14 @@ module Service
     # Since the Registry API v2 does not support a search the v1 endpoint is used
     # Newer registries will fail, the v2 catalog endpoint is used
     def search(query)
-      get('/v1/search', { q: query })
+      get('/v1/search'.freeze, { q: query })
     rescue
       { 'results' => catalog(query) }
     end
 
     # Some Registries might have this endpoint not implemented/enabled
     def catalog(query)
-      get('/v2/_catalog')['repositories'].select do |image|
+      get('/v2/_catalog'.freeze)['repositories'].select do |image|
         image =~ /^#{query}/
       end.map { |image_name| { 'name' => image_name } }
     end
@@ -51,9 +51,9 @@ module Service
     end
 
     def ok?
-      get('/v1/').match("Docker Registry API")
+      get('/v1/'.freeze).match("Docker Registry API")
     rescue
-      get('/v2/').is_a? Hash
+      get('/v2/'.freeze).is_a? Hash
     end
 
     def self.docker_hub
