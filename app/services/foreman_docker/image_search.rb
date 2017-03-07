@@ -1,13 +1,13 @@
 module ForemanDocker
   class ImageSearch
     def initialize(*args)
+      @sources = {}
       args.each do |source|
         add_source(source)
       end
     end
 
     def add_source(source)
-      @sources ||= {}
       case source
       when ForemanDocker::Docker
         @sources[:compute_resource] ||= []
