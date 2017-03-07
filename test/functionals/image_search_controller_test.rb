@@ -111,6 +111,49 @@ class ImageSearchControllerTest < ActionController::TestCase
     end
   end
 
+  describe '#search_repository' do
+    test 'returns html with the found images' do
+      search_type = ['hub', 'external'].sample
+      subject.instance_variable_set(:@image_search_service, image_search_service)
+      image_search_service.expects(:search)
+        .with({ term: term, tags: 'false' })
+        .returns([{ 'name' => term}])
+      xhr :get, :search_repository,
+        { registry: search_type, search: term,
+          id: compute_resource }, set_session_user
+      assert response.body.include?(term)
+    end
+
+    context 'a Docker Hub tab request' do
+      let(:search_type) { 'hub' }
+
+      test 'it searches Docker Hub and the ComputeResource' do
+        compute_resource.expects(:local_images)
+          .returns([OpenStruct.new(info: { 'RepoTags' => [term] })])
+        docker_hub.expects(:search).returns({})
+
+        xhr :get, :search_repository,
+          { registry: search_type, search: term,
+            id: compute_resource }, set_session_user
+      end
+    end
+
+    context 'it is a External Registry tab request' do
+      let(:search_type) { 'external' }
+
+      test 'it only queries the registry api' do
+        compute_resource.expects(:local_images).with(image).never
+        docker_hub.expects(:search).never
+        registry.api.expects(:search).with(image)
+          .returns({})
+
+        xhr :get, :search_repository,
+          { registry: search_type, registry_id: registry,
+            search: term, id: compute_resource }, set_session_user
+      end
+    end
+  end
+
   [Docker::Error::DockerError, Excon::Errors::Error, Errno::ECONNREFUSED].each do |error|
     test 'auto_complete_repository_name catches exceptions on network errors' do
       ForemanDocker::ImageSearch.any_instance.expects(:available?)
