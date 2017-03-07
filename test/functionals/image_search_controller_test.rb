@@ -10,7 +10,6 @@ class ImageSearchControllerTest < ActionController::TestCase
   let(:image_search_service) { ForemanDocker::ImageSearch.new }
 
   setup do
-    @container = FactoryGirl.create(:docker_cr)
     Service::RegistryApi.stubs(:docker_hub).returns(docker_hub)
     ComputeResource::ActiveRecord_Relation.any_instance
       .stubs(:find).returns(compute_resource)
@@ -114,20 +113,22 @@ class ImageSearchControllerTest < ActionController::TestCase
     test 'auto_complete_repository_name catches exceptions on network errors' do
       ForemanDocker::ImageSearch.any_instance.expects(:available?)
         .raises(error)
-      xhr :get, :auto_complete_repository_name, { :search => "test", :id => @container.id },
-          set_session_user
+      xhr :get, :auto_complete_repository_name,
+        { registry: 'hub', search: term, id: compute_resource }, set_session_user
       assert_response_is_expected
     end
 
     test 'auto_complete_image_tag catch exceptions on network errors' do
       ForemanDocker::ImageSearch.any_instance.expects(:search).raises(error)
-      xhr :get, :auto_complete_image_tag, { :search => "test", :id => @container.id }, set_session_user
+      xhr :get, :auto_complete_image_tag,
+        { registry: 'hub', search:  term, id: compute_resource }, set_session_user
       assert_response_is_expected
     end
 
     test 'search_repository catch exceptions on network errors' do
       ForemanDocker::ImageSearch.any_instance.expects(:search).raises(error)
-      xhr :get, :search_repository, { :search => "test", :id => @container.id }, set_session_user
+      xhr :get, :search_repository,
+        { registry: 'hub', search: term, id: compute_resource }, set_session_user
       assert_response_is_expected
     end
   end
@@ -143,7 +144,8 @@ class ImageSearchControllerTest < ActionController::TestCase
                    "star_count" => 0
                 }]
     ForemanDocker::ImageSearch.any_instance.expects(:search).returns(expected).at_least_once
-    xhr :get, :search_repository, { :search => "centos", :id => @container.id }, set_session_user
+    xhr :get, :search_repository,
+      { registry: 'hub', search: 'centos', id: compute_resource }, set_session_user
     assert_response :success
     refute response.body.include?(repo_full_name)
     assert response.body.include?(repository)
@@ -160,7 +162,8 @@ class ImageSearchControllerTest < ActionController::TestCase
                   "star_count" => 0
                 }]
     ForemanDocker::ImageSearch.any_instance.expects(:search).returns(expected).at_least_once
-    xhr :get, :search_repository, { :search => "centos", :id => @container.id }, set_session_user
+    xhr :get, :search_repository,
+      { registry: 'hub', search: 'centos', id: compute_resource  }, set_session_user
     assert_response :success
     assert response.body.include?(repo_full_name)
     assert response.body.include?(repository)
