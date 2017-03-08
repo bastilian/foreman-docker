@@ -14,7 +14,7 @@ class ImageSearchServiceTest < ActiveSupport::TestCase
 
   describe '#add_source' do
     setup do
-      subject.instance_variable_set(:@sources, nil)
+      subject.instance_variable_set(:@sources, {})
     end
 
     test 'adds a compute resource to @sources[:compute_resource]' do
