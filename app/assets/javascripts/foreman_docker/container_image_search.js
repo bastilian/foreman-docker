@@ -82,9 +82,10 @@ function ContainerImageSearch() {
 
     $.ajax({
       type:'get',
-      dataType:'text',
+      dataType:'html',
       url: this.searchButton.data('url'),
       data: {
+        registry: this.registryType,
         search: input.val(),
         registry_id: this.registryId()
       },

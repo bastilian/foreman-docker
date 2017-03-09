@@ -25,7 +25,7 @@
   <%= text_f(f, :repository_name,
     :label => _('Search'),
     :wrapper_class => (image_search_wrapper_class(model) if tab_active?(registry)),
-    :'data-url'  => auto_complete_image_search_path(model.compute_resource_id),
+    :'data-url'  => search_repository_image_search_path(model.compute_resource_id),
     :value       => f.object.repository_name.present? ? f.object.repository_name : '',
     :'data-registry' => registry,
     :'data-image' => true,
@@ -40,7 +40,7 @@
     :'data-registry' => registry,
     :'data-tag' => true,
     :'data-min-length' => 0,
-    :'data-url' => auto_complete_image_search_path(model.compute_resource_id),
+    :'data-url' => search_repository_image_search_path(model.compute_resource_id),
     :help_inline => spinner('', class: 'hide autocomplete-status') %>
 
   <div class="col-md-6 col-md-offset-1">

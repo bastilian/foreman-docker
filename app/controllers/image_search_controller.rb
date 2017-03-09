@@ -1,23 +1,14 @@
 class ImageSearchController < ::ApplicationController
   def search_repository
     catch_network_errors do
-      repositories = image_search_service.search(term: params[:search])
+      tags_enabled = params[:tags] || 'false'
+      result = image_search_service.search(term: params[:search], tags: tags_enabled)
 
       respond_to do |format|
-        format.js do
-          render :partial => 'repository_search_results',
-                 :locals  => { :repositories => repositories }
+        format.js { render json: prepare_for_autocomplete(result) }
+        format.html do
+          render partial: 'repository_search_results', locals: { repositories: result }
         end
-      end
-    end
-  end
-
-  def auto_complete
-    catch_network_errors do
-      results = image_search_service.search({term: params[:search], tags: params[:tags]})
-
-      respond_to do |format|
-        format.js { render json: prepare_autocomplete_results(results) }
       end
     end
   end
