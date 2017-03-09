@@ -1,11 +1,4 @@
 class ImageSearchController < ::ApplicationController
-  before_filter :find_resource
-
-  # this is incredibly odd. for some reason, rails sees the
-  # requests ImageSearchControllerTest makes as requests from another host
-  # thus, violating CSRF.
-  protect_from_forgery :only => :nothing if Rails.env.test?
-
   def search_repository
     catch_network_errors do
       repositories = image_search_service.search(term: params[:search])
@@ -31,24 +24,13 @@ class ImageSearchController < ::ApplicationController
 
   private
 
-  def image_search_service
-    @image_search_service ||= ::ForemanDocker::ImageSearch.new(@compute_resource, @registry)
-  end
-
-  def prepare_autocomplete_results(results)
-    results.map do |result|
-      { label: CGI.escapeHTML(result['name']),
-        value: CGI.escapeHTML(result['name']) }
-    end.uniq
-  end
-
   def catch_network_errors
     yield
   rescue Docker::Error::NotFoundError => e
     # not an error
     logger.debug "image not found: #{e.backtrace}"
     render :js, :nothing => true
-  rescue Docker::Error::DockerError, Excon::Errors::Error, Errno::ECONNREFUSED => e
+  rescue Docker::Error::DockerError, Excon::Errors::Error, SystemCallError => e
     render :js => _("An error occured during repository search: '%s'") % e.message,
            :status => 500
   end
@@ -62,13 +44,28 @@ class ImageSearchController < ::ApplicationController
     end
   end
 
-  def find_resource
-    if params[:registry_id].present? && !params[:registry_id].blank?
-      @registry = DockerRegistry.authorized(:view_registries).find(params[:registry_id])
-    else
-      @compute_resource = ComputeResource.authorized(:view_compute_resources).find(params[:id])
+  # This is the format jQuery UI autocomplete expects
+  def prepare_for_autocomplete(tags)
+    tags.map do |tag|
+      tag = tag.is_a?(Hash) ? tag.fetch('name', tag) : tag
+      tag = CGI.escapeHTML(tag)
+      { :label => tag, :value => tag }
     end
-  rescue ActiveRecord::RecordNotFound
-    not_found
+  end
+
+  def image_search_service
+    @image_search_service ||= ForemanDocker::ImageSearch.new(*sources)
+  end
+
+  def sources
+    if params[:registry] == 'hub'
+      @registry ||= Service::RegistryApi.docker_hub
+      @compute_resource ||= ComputeResource.authorized(:view_compute_resources).find(params[:id])
+      [@registry, @compute_resource]
+    elsif params[:registry] == 'registry' && params[:registry_id].present?
+      @registry ||= DockerRegistry.authorized(:view_registries)
+        .find(params[:registry_id]).api
+      [@registry]
+    end
   end
 end

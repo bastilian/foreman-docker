@@ -17,10 +17,14 @@ class RegistryApiTest < ActiveSupport::TestCase
       let(:user) { 'username' }
       let(:password) { 'secretpassword' }
 
-      test 'it sets the same user and password' do
-        subject.user = user
-        subject.password = password
+      subject do
+        Service::RegistryApi.new({
+          url: url,
+          password: password,
+          user: user })
+      end
 
+      test 'it sets the same user and password' do
         assert_equal user, subject.connection.options[:user]
         assert_equal password, subject.connection.options[:password]
       end
@@ -65,6 +69,13 @@ class RegistryApiTest < ActiveSupport::TestCase
 
       subject.get(path)
     end
+
+    test 'returns the response raw body if it is not JSON' do
+      response = 'This is not JSON'
+      subject.connection.stubs(:get)
+        .returns(response)
+      assert_equal response, subject.get('/v1/')
+    end
   end
 
   describe '#search' do
@@ -72,7 +83,7 @@ class RegistryApiTest < ActiveSupport::TestCase
     let(:query) { 'centos' }
 
     test "calls #get with path and query" do
-      subject.expects(:get).with(path, {q: query}).once do |path_param, params|
+      subject.expects(:get).with(path, {q: query}) do |path_param, params|
         assert_equal path, path_param
         assert_equal query, params[:q]
       end.returns({})
@@ -81,9 +92,9 @@ class RegistryApiTest < ActiveSupport::TestCase
     end
 
     test "falls back to #catalog if #get fails" do
-      subject.expects(:catalog).with(query).once
+      subject.expects(:catalog).with(query)
 
-      subject.expects(:get).with(path, {q: query}).once
+      subject.expects(:get).with(path, {q: query})
         .raises('Error')
 
       subject.search(query)
@@ -122,34 +133,69 @@ class RegistryApiTest < ActiveSupport::TestCase
     let(:path) { "/v1/repositories/#{query}/tags" }
 
     test "calls #get with path" do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
       subject.tags(query)
     end
 
     test "falls back to #tags_v2 if #get fails" do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
         .raises('Error')
 
-      subject.expects(:tags_v2).with(query).once
+      subject.expects(:tags_v2).with(query)
       subject.tags(query)
+    end
+
+    # https://registry.access.redhat.com returns a hash not an array
+    test 'handles a hash response correctly' do
+      tags_hash = {
+        "7.0-21": "e1f5733f050b2488a17b7630cb038bfbea8b7bdfa9bdfb99e63a33117e28d02f",
+	"7.0-23": "bef54b8f8a2fdd221734f1da404d4c0a7d07ee9169b1443a338ab54236c8c91a",
+	"7.0-27": "8e6704f39a3d4a0c82ec7262ad683a9d1d9a281e3c1ebbb64c045b9af39b3940"
+      }
+      subject.expects(:get).with(path)
+        .returns(tags_hash)
+      assert_equal '7.0-21', subject.tags(query).first['name']
     end
   end
 
-  describe '#tags_v2' do
+  describe '#tags for API v2' do
     let(:query) { 'debian' }
+    let(:v1_path) { "/v1/repositories/#{query}/tags" }
     let(:path) { "/v2/#{query}/tags/list" }
     let(:tags) { { 'tags' => ['jessy', 'woody'] } }
 
+    setup do
+      subject.stubs(:get).with(v1_path)
+        .raises('404 Not found')
+    end
+
     test 'calls #get with path' do
-      subject.expects(:get).with(path).once
+      subject.expects(:get).with(path)
         .returns(tags)
-      subject.tags_v2(query)
+      subject.tags(query)
     end
 
     test 'returns {"name" => value } pairs ' do
-      subject.stubs(:get).returns(tags)
-      result = subject.tags_v2(query)
+      subject.stubs(:get).with(path).returns(tags)
+      result = subject.tags(query)
       assert_equal tags['tags'].first, result.first['name']
+    end
+  end
+
+  describe '#ok?' do
+    test 'calls the API via #get with /v1/' do
+      subject.connection.expects(:get)
+        .with('/', nil, Service::RegistryApi::DEFAULTS[:connection].merge({ path: '/v1/' }))
+        .returns('Docker Registry API')
+      assert subject.ok?
+    end
+
+    test 'calls #get with /v2/ if /v1/fails' do
+      subject.stubs(:get).with('/v1/')
+        .raises('404 page not found')
+      subject.expects(:get).with('/v2/')
+        .returns({})
+      assert subject.ok?
     end
   end
 
