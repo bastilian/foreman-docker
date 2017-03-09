@@ -39,11 +39,20 @@ function ContainerImageSearch() {
     return this.getFormGroup(input).find('.help-inline');
   }
 
+  this.validRequest = function () {
+    return this.registryType == 'registry' && this.registryId() != '' ||
+           this.registryType == 'hub' && this.registryId() == '';
+  }
+
   this.getAutocompleteResults = function (tag, input, callback, params) {
+    if(!this.validRequest())
+      return;
+
     var spinner = this.getSpinner(tag),
         imageName = this.inputs.image.val(),
         tagsOnly = tag.data('tag'),
         params = $.extend({
+          registry: this.registryType,
           search: tagsOnly ? imageName + ':' + input.term : input.term,
           registry_id: this.registryId(),
           tags: tagsOnly
@@ -62,6 +71,9 @@ function ContainerImageSearch() {
   };
 
   this.fullResultList = function (event) {
+    if(!this.validRequest())
+      return;
+
     var list = this.resultsList,
         input = this.inputs.image;
 
