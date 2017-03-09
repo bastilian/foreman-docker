@@ -15,7 +15,7 @@ module DockerContainerWizardStates
     end
 
     def registry
-       DockerRegistry.find(registry_id) if registry_id
+      DockerRegistry.find(registry_id).api if registry_id
     end
 
     def image_search_service
