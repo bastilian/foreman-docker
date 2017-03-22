@@ -19,7 +19,7 @@
         <h3><%= _("Resource selection") %></h3>
         <%= _("Where do you want to deploy your container?:") %>
         <hr>
-        <%= select_f f, 'compute_resource', @container_resources, :id, :to_label, {}, { :label => _('Deploy on') } %>
+        <%= select_f f, 'compute_resource_id', @container_resources, :id, :to_label, {}, { :label => _('Deploy on') } %>
       <% else %>
 
         <div class="alert alert-warning alert-dismissable">
