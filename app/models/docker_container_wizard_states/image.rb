@@ -14,21 +14,28 @@ module DockerContainerWizardStates
       "#{repository_name}:#{tag}"
     end
 
-    def registry
-      DockerRegistry.find(registry_id).api if registry_id
+    def registry_api
+      if registry_id
+        DockerRegistry.find(registry_id).api
+      else
+        Service::RegistryApi.docker_hub
+      end
+    end
+
+    def sources
+      [compute_resource, registry_api]
     end
 
     def image_search_service
-      ::ForemanDocker::ImageSearch.new(compute_resource, registry)
+      ForemanDocker::ImageSearch.new(*sources)
     end
 
     def image_exists
-      unless image_search_service.available?(name)
-        error_msg = _("Container image %{image_name} is not available.") % {
-          image_name: "#{name}",
-        }
-        errors.add(:image, error_msg)
-      end
+      return true if image_search_service.available?(name)
+      error_msg = _("Container image %{image_name} is not available.") % {
+        image_name: "#{name}",
+      }
+      errors.add(:image, error_msg)
     end
   end
 end
