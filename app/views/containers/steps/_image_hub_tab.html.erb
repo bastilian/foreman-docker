@@ -22,6 +22,7 @@
     </div>
   <% end -%>
 
+  <% help_type = f.object.errors[:repository_name].present? ? :help_block : :help_inline %>
   <%= text_f(f, :repository_name,
     :label => _('Search'),
     :size => 'col-md-6',
@@ -30,6 +31,7 @@
     :value       => f.object.repository_name.present? ? f.object.repository_name : '',
     :'data-registry' => registry,
     :'data-image' => true,
+    :'data-search' => true,
     :'data-min-length' => 1,
     :focus_on_load => true,
     :placeholder => _('Find your favorite container, e.g. centos'),
