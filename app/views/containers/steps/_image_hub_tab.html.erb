@@ -17,9 +17,7 @@
   <% end %>
 
   <% if registry == "registry" -%>
-    <div class="input-group col-md-6">
       <%= select_registry f %>
-    </div>
   <% end -%>
 
   <% help_type = f.object.errors[:repository_name].present? ? :help_block : :help_inline %>
@@ -45,7 +43,7 @@
     :'data-url' => search_repository_image_search_path(model.compute_resource_id),
     :help_inline => spinner('', class: 'hide autocomplete-status') %>
 
-  <div class="col-md-6 col-md-offset-1">
+  <div class="col-md-6 col-md-offset-2 small-gutter">
     <%= link_to(icon_text('search', _('Search for images')), "#",
           :class => 'image-search-button btn btn-default',
           :'data-registry' => registry,
