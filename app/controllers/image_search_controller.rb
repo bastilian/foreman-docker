@@ -28,6 +28,7 @@ class ImageSearchController < ::ApplicationController
 
   def action_permission
     case params[:action]
+    when 'search_repository'
       :search_repository
     else
       super
