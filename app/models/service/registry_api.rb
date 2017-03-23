@@ -81,6 +81,8 @@ module Service
 
     def tags_v2(image_name)
       get("/v2/#{image_name}/tags/list")['tags'].map { |tag| { 'name' => tag } }
+    rescue Docker::Error::NotFoundError
+      []
     end
 
     def credentials
