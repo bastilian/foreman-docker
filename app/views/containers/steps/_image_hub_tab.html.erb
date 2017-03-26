@@ -45,6 +45,7 @@
 
   <div class="col-md-6 col-md-offset-2 small-gutter">
     <%= link_to(icon_text('search', _('Search for images')), "#",
+          :id => "search_repository_button_#{registry}",
           :class => 'image-search-button btn btn-default',
           :'data-registry' => registry,
           :'data-url' => search_repository_image_search_path(model.compute_resource_id)) %>
