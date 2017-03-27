@@ -40,8 +40,9 @@ function ContainerImageSearch() {
   }
 
   this.validRequest = function () {
-    return this.registryType == 'registry' && this.registryId() != '' ||
-           this.registryType == 'hub' && this.registryId() == '';
+    return (this.registryType == 'registry' && this.registryId() != '' ||
+           this.registryType == 'hub' && this.registryId() == '') &&
+           this.inputs.image.val() != '';
   }
 
   this.getAutocompleteResults = function (tag, input, callback, params) {
@@ -113,7 +114,8 @@ function ContainerImageSearch() {
         resultType = field.data('tag') ? 'Tag' : 'Image',
         result = results.filter(function (item) {
           return item.value == field.val();
-        })[0];
+        }),
+        available = result.length > 0;
 
     inlineHelp.find('.autocomplete-confirmation').remove()
     spinner.removeClass('spinner spinner-xs pficon-error-circle-o pficon-ok');
@@ -121,18 +123,24 @@ function ContainerImageSearch() {
     if (field.val() == '')
       return;
 
-    if (result) {
+    if (available) {
       spinner.addClass('pficon pficon-ok');
-      inlineHelp.append('<span class="autocomplete-confirmation">&nbsp;' +
-                        resultType + ' <strong>' + field.val() + '</strong> available.' +
-                        '</span>');
     } else {
       spinner.addClass('pficon pficon-error-circle-o');
-      inlineHelp.append('<span class="autocomplete-confirmation">&nbsp;' +
-                        resultType + ' <strong>' + field.val() + '</strong> is <strong>not</strong> available.' +
-                        '</span>');
     };
-  }
+
+    inlineHelp.append(this.confirmationWrapper(resultType, field.val(), available));
+  };
+
+  this.confirmationWrapper = function(resultType, value, available) {
+    var wrapper = '<span class="autocomplete-confirmation">&nbsp;' +
+                  resultType + ' <strong>' + value + '</strong> is '
+
+    if (!available)
+      wrapper += '<strong>not</strong>';
+
+    return wrapper + ' available.</span>';
+  };
 
   this.confirmAutocomplete = function (field, autocomplete) {
     this.getAutocompleteResults(field, { term: field.val() }, function (results) {
@@ -154,7 +162,7 @@ function ContainerImageSearch() {
     field.on('blur', function () {
       this.confirmAutocomplete(field)
     }.bind(this))
-  },
+  };
 
   this.setupInputs = function () {
     var image = this.inputs.image,
