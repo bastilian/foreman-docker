@@ -23,7 +23,6 @@
   <% help_type = f.object.errors[:repository_name].present? ? :help_block : :help_inline %>
   <%= text_f(f, :repository_name,
     :label => _('Search'),
-    :size => 'col-md-6',
     :wrapper_class => (image_search_wrapper_class(model) if tab_active?(registry)),
     :'data-url'  => search_repository_image_search_path(model.compute_resource_id),
     :value       => f.object.repository_name.present? ? f.object.repository_name : '',
