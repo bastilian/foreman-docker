@@ -29,6 +29,27 @@ class RegistryApiTest < ActiveSupport::TestCase
         assert_equal password, subject.connection.options[:password]
       end
     end
+
+    context 'a HTTP proxy is set' do
+      let(:proxy_url) { 'http://testproxy:3128' }
+
+      setup do
+        Service::RegistryApi.any_instance
+                            .stubs(:http_proxy_url)
+                            .returns(proxy_url)
+      end
+
+      test 'it will initialize a connection with it' do
+        assert_equal proxy_url, subject.connection.options[:proxy]
+      end
+
+      context 'when a proxy is set via ENV' do
+        test 'it will not pass a proxy option' do
+          ENV['HTTP_PROXY'] = 'http://envtestproxy:3129'
+          assert_nil subject.connection.options[:proxy]
+        end
+      end
+    end
   end
 
   describe '#get' do

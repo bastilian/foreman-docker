@@ -19,7 +19,7 @@ module Service
     end
 
     def connection
-      @connection ||= ::Docker::Connection.new(url, credentials)
+      @connection ||= ::Docker::Connection.new(url, connection_options)
     end
 
     def get(path, params = nil)
@@ -89,8 +89,35 @@ module Service
       get("/v2/#{image_name}/tags/list")['tags'].map { |tag| { 'name' => tag } }
     end
 
+    def connection_options
+      {}.merge(credentials)
+        .merge(http_proxy)
+    end
+
     def credentials
       { user: @user, password: @password }
+    end
+
+    # Returns a proxy to set for connection_options
+    #
+    # If a proxy is set via ENV it will return and
+    # let Excon::Connection set it.
+    def http_proxy
+      if !env_http_proxy? && http_proxy_url
+        { proxy: http_proxy_url }
+      else
+        {}
+      end
+    end
+
+    def http_proxy_url
+      SETTINGS.fetch(:'foreman-docker', {})
+              .fetch(:http_proxy, nil)
+    end
+
+    # Checks for HTTP(S)_PROXY variables
+    def env_http_proxy?
+      ENV.keys.select { |key| key =~ /https*_proxy/i }.any?
     end
 
     def filter_tags(result, query)
