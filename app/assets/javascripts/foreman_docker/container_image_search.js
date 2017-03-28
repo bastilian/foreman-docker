@@ -94,7 +94,7 @@ function ContainerImageSearch() {
         list.html(result).show();
       },
       error: function(result) {
-        $.jnotify(result.responseText, 'error', true);
+        notify('<p>' + result.responseText + '</p>', 'danger');
     }});
   };
 
