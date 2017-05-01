@@ -12,14 +12,18 @@ module Service
     end
 
     def search(aquery)
+      RestClient.proxy = SETTINGS.fetch(:foreman_docker, {}).fetch(:http_proxy, nil)
       response = RestClient.get(config[:url] + '/v1/search',
                                 :params => { :q => aquery }, :accept => :json)
+      RestClient.proxy = nil
       JSON.parse(response.body)
     end
 
     def list_repository_tags(arepository)
+      RestClient.proxy = SETTINGS.fetch(:foreman_docker, {}).fetch(:http_proxy, nil)
       response = RestClient.get(config[:url] + "/v1/repositories/#{arepository}/tags",
                                 :accept => :json)
+      RestClient.proxy = nil
       JSON.parse(response.body)
     end
   end
