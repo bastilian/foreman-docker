@@ -44,7 +44,7 @@ class DockerRegistry < ActiveRecord::Base
 
   def api
     @api ||= Service::RegistryApi.new(url: url, user: username,
-                                      password: password)
+                                      password: password, verify_ssl: verify_ssl)
   end
 
   private
