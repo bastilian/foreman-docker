@@ -17,6 +17,7 @@
         <%= text_f   f, :description, :help_inline => _("Description of the registry") %>
         <%= text_f   f, :username, :help_inline => _("Username used to access the registry") %>
         <%= password_f   f, :password, :help_inline => _("Password used for authentication to the registry") %>
+        <%= checkbox_f f, :verify_ssl, :help_inline => _("Disable to use an insecure registry") %>
       </div>
 
       <%= render 'taxonomies/loc_org_tabs', :f => f, :obj => @registry %>
